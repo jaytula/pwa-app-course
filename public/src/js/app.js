@@ -20,6 +20,17 @@ var promise = new Promise(function(resolve, reject) {
   }, 1000);
 });
 
+fetch("https://httpbin.org/ip")
+  .then(resp => {
+    return resp.json();
+  })
+  .then(json => {
+    console.log(json);
+  })
+  .catch(err => {
+    console.log(err);
+  });
+
 promise
   .then(text => {
     return text + "abc";
