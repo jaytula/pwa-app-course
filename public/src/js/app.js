@@ -13,3 +13,17 @@ window.addEventListener("beforeinstallprompt", function(event) {
   deferredPrompt = event;
   return false;
 });
+
+var promise = new Promise(function(resolve, reject) {
+  setTimeout(function() {
+    resolve("This is executed one the timer is done!");
+  }, 1000);
+});
+
+promise
+  .then(text => {
+    return text + "abc";
+  })
+  .then(newText => {
+    console.log(newText);
+  });
