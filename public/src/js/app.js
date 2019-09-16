@@ -20,6 +20,17 @@ var promise = new Promise(function(resolve, reject) {
   }, 1000);
 });
 
+var xhr = new XMLHttpRequest();
+xhr.open("GET", "https://httpbin.org/ip");
+xhr.responseType = "json";
+xhr.onload = function() {
+  console.log(xhr.response);
+};
+xhr.onerror = function() {
+  console.log("Error!");
+};
+xhr.send();
+
 fetch("https://httpbin.org/ip")
   .then(resp => {
     return resp.json();
