@@ -38,3 +38,20 @@ promise
   .then(newText => {
     console.log(newText);
   });
+
+fetch("https://httpbin.org/post", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json"
+  },
+  body: JSON.stringify({
+    message: "Does this work?"
+  })
+})
+  .then(res => {
+    console.log(res);
+    return res.json();
+  })
+  .then(data => console.log(data))
+  .catch(err => console.error(err));
