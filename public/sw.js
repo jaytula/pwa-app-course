@@ -1,5 +1,5 @@
-var CACHE_STATIC_NAME = 'static-v4';
-var CACHE_DYNAMIC_NAME = 'dynamic-v2';
+var CACHE_STATIC_NAME = 'static-v5';
+var CACHE_DYNAMIC_NAME = 'dynamic-v5';
 
 self.addEventListener("install", function(event) {
   console.log("[Service Worker] Installing Server Worker ...", event);
@@ -48,7 +48,7 @@ self.addEventListener("fetch", function(event) {
         return fetch(event.request)
           .then(function(res) {
             return caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
-              cache.put(event.request.url, res.clone());
+              //cache.put(event.request.url, res.clone());
               return res;
             });
           })
