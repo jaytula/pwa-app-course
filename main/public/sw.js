@@ -1,6 +1,5 @@
-var CACHE_STATIC_NAME = "static-v14";
-var CACHE_DYNAMIC_NAME = "dynamic-v5";
-
+var CACHE_STATIC_NAME = "static-v13";
+var CACHE_DYNAMIC_NAME = "dynamic-v2";
 var STATIC_FILES = [
   "/",
   "/index.html",
@@ -19,7 +18,7 @@ var STATIC_FILES = [
 ];
 
 self.addEventListener("install", function(event) {
-  console.log("[Service Worker] Installing Server Worker ...", event);
+  console.log("[Service Worker] Installing Service Worker ...", event);
   event.waitUntil(
     caches.open(CACHE_STATIC_NAME).then(function(cache) {
       console.log("[Service Worker] Precaching App Shell");
@@ -29,7 +28,7 @@ self.addEventListener("install", function(event) {
 });
 
 self.addEventListener("activate", function(event) {
-  console.log("[Service Worker] Activating Server Worker ...", event);
+  console.log("[Service Worker] Activating Service Worker ....", event);
   event.waitUntil(
     caches.keys().then(function(keyList) {
       return Promise.all(
@@ -45,11 +44,27 @@ self.addEventListener("activate", function(event) {
   return self.clients.claim();
 });
 
+function isInArray(string, array) {
+  var cachePath;
+  if (string.indexOf(self.origin) === 0) {
+    // request targets domain where we serve the page from (i.e. NOT a CDN)
+    console.log("matched ", string);
+    cachePath = string.substring(self.origin.length); // take the part of the URL AFTER the domain (e.g. after localhost:8080)
+  } else {
+    cachePath = string; // store the full request (for CDNs)
+  }
+  return array.indexOf(cachePath) > -1;
+}
+
+// a. At top level, we ultimately have event.respondWith.
+// b. We can have if/elseif/else and test against event.request.url to use different cache strategies
+// c. If here handles one particular url
+// d. The Else-if case here is a cache-only for those files in the STATIC_FILES list
+// e. The Else case is for dynamic caching.  Retrieves from cache if found and does a fetch-cache otherwise
 self.addEventListener("fetch", function(event) {
   var url = "https://httpbin.org/get";
-
   if (event.request.url.indexOf(url) > -1) {
-    event.respondWith(
+     event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
         return fetch(event.request).then(function(res) {
           cache.put(event.request, res.clone());
@@ -57,17 +72,14 @@ self.addEventListener("fetch", function(event) {
         });
       })
     );
-  } else if (
-    new RegExp("\\b" + STATIC_FILES.join("\\b|\\b") + "\\b").test(
-      event.request.url
-    )
-  ) {
+  } else if (isInArray(event.request.url, STATIC_FILES)) {
     event.respondWith(caches.match(event.request));
   } else {
     event.respondWith(
       caches.match(event.request).then(function(response) {
-        if (response) return response;
-        else {
+        if (response) {
+          return response;
+        } else {
           return fetch(event.request)
             .then(function(res) {
               return caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
@@ -76,8 +88,8 @@ self.addEventListener("fetch", function(event) {
               });
             })
             .catch(function(err) {
-              return caches.open(CACHE_STATIC_NAME).then(cache => {
-                if (event.request.url.indexOf("/help")) {
+              return caches.open(CACHE_STATIC_NAME).then(function(cache) {
+                if (event.request.headers.get("accept").includes("text/html")) {
                   return cache.match("/offline.html");
                 }
               });
@@ -88,57 +100,58 @@ self.addEventListener("fetch", function(event) {
   }
 });
 
-// self.addEventListener("fetch", function(event) {
+// self.addEventListener('fetch', function(event) {
 //   event.respondWith(
-//     caches.match(event.request).then(function(response) {
-//       if (response) return response;
-//       else {
-//         return fetch(event.request)
-//           .then(function(res) {
-//             return caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
-//               cache.put(event.request.url, res.clone());
-//               return res;
-//             });
-//           })
-//           .catch(function(err) {
-//             return caches.open(CACHE_STATIC_NAME).then(cache => {
-//                return cache.match('/offline.html');
+//     caches.match(event.request)
+//       .then(function(response) {
+//         if (response) {
+//           return response;
+//         } else {
+//           return fetch(event.request)
+//             .then(function(res) {
+//               return caches.open(CACHE_DYNAMIC_NAME)
+//                 .then(function(cache) {
+//                   cache.put(event.request.url, res.clone());
+//                   return res;
+//                 })
 //             })
-//           });
-//       }
-//     })
+//             .catch(function(err) {
+//               return caches.open(CACHE_STATIC_NAME)
+//                 .then(function(cache) {
+//                   return cache.match('/offline.html');
+//                 });
+//             });
+//         }
+//       })
+//   );
+// });
+
+// self.addEventListener('fetch', function(event) {
+//   event.respondWith(
+//     fetch(event.request)
+//       .then(function(res) {
+//         return caches.open(CACHE_DYNAMIC_NAME)
+//                 .then(function(cache) {
+//                   cache.put(event.request.url, res.clone());
+//                   return res;
+//                 })
+//       })
+//       .catch(function(err) {
+//         return caches.match(event.request);
+//       })
 //   );
 // });
 
 // Cache-only
-// self.addEventListener("fetch", function(event) {
+// self.addEventListener('fetch', function (event) {
 //   event.respondWith(
 //     caches.match(event.request)
 //   );
 // });
 
 // Network-only
-// self.addEventListener("fetch", function(event) {
+// self.addEventListener('fetch', function (event) {
 //   event.respondWith(
 //     fetch(event.request)
 //   );
 // });
-
-// Network with Cache Fallback
-// self.addEventListener("fetch", function(event) {
-//   event.respondWith(
-//     fetch(event.request)
-//       .then(function(res) {
-//         return caches.open(CACHE_DYNAMIC_NAME)
-//           .then(function(cache) {
-//             cache.put(event.request.url, res.clone());
-//             return res;
-//           })
-//       })
-//       .catch(function(err) {
-//         return caches.match(event.request)
-//       })
-//   );
-// });
-
-// Cache then Network

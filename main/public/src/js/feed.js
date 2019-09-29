@@ -78,6 +78,7 @@ function createCard() {
 
 var url = "https://httpbin.org/get";
 var networkDataReceived = false;
+const DEBUG = false;
 
 fetch(url)
   .then(function(res) {
@@ -85,7 +86,7 @@ fetch(url)
   })
   .then(function(data) {
     networkDataReceived = true;
-    console.log("from web", data);
+    if(DEBUG) console.log("from web", data);
     clearCards();
     createCard();
   });
@@ -99,7 +100,7 @@ if ("caches" in window) {
       }
     })
     .then(function(data) {
-      console.log("from cache", data);
+      if(DEBUG) console.log("from cache", data);
       if (!networkDataReceived) {
         clearCards();
         createCard();
