@@ -17,6 +17,16 @@ var STATIC_FILES = [
   "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
 ];
 
+function trimCache(cacheName, maxItems) {
+  caches.open(cacheName).then(cache => {
+    return caches.keys().then(keys => {
+      if (keys.length > maxItems) {
+        return cache.delete(keys[0]).then(trimCache(cacheName, maxItems));
+      }
+    });
+  });
+}
+
 self.addEventListener("install", function(event) {
   console.log("[Service Worker] Installing Service Worker ...", event);
   event.waitUntil(
@@ -63,10 +73,12 @@ function isInArray(string, array) {
 // e. The Else case is for dynamic caching.  Retrieves from cache if found and does a fetch-cache otherwise
 self.addEventListener("fetch", function(event) {
   var url = "https://httpbin.org/get";
+  trimCache(CACHE_DYNAMIC_NAME, 3);
   if (event.request.url.indexOf(url) > -1) {
-     event.respondWith(
+    event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
         return fetch(event.request).then(function(res) {
+          trimCache(CACHE_DYNAMIC_NAME, 3);
           cache.put(event.request, res.clone());
           return res;
         });
@@ -83,6 +95,7 @@ self.addEventListener("fetch", function(event) {
           return fetch(event.request)
             .then(function(res) {
               return caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
+                trimCache(CACHE_DYNAMIC_NAME, 3);
                 cache.put(event.request.url, res.clone());
                 return res;
               });
