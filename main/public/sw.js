@@ -19,7 +19,7 @@ var STATIC_FILES = [
 
 function trimCache(cacheName, maxItems) {
   caches.open(cacheName).then(cache => {
-    return caches.keys().then(keys => {
+    return cache.keys().then(keys => {
       if (keys.length > maxItems) {
         return cache.delete(keys[0]).then(trimCache(cacheName, maxItems));
       }
@@ -73,12 +73,11 @@ function isInArray(string, array) {
 // e. The Else case is for dynamic caching.  Retrieves from cache if found and does a fetch-cache otherwise
 self.addEventListener("fetch", function(event) {
   var url = "https://httpbin.org/get";
-  trimCache(CACHE_DYNAMIC_NAME, 3);
   if (event.request.url.indexOf(url) > -1) {
     event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
         return fetch(event.request).then(function(res) {
-          trimCache(CACHE_DYNAMIC_NAME, 3);
+          trimCache(CACHE_DYNAMIC_NAME, 2);
           cache.put(event.request, res.clone());
           return res;
         });
@@ -95,7 +94,7 @@ self.addEventListener("fetch", function(event) {
           return fetch(event.request)
             .then(function(res) {
               return caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
-                trimCache(CACHE_DYNAMIC_NAME, 3);
+                trimCache(CACHE_DYNAMIC_NAME, 2);
                 cache.put(event.request.url, res.clone());
                 return res;
               });
