@@ -84,6 +84,7 @@ function updateUI(data) {
   }
 }
 
+/*
 var url = "https://pwagram-9071a.firebaseio.com/posts.json";
 var networkDataReceived = false;
 const DEBUG = false;
@@ -101,6 +102,36 @@ fetch(url)
     }
     updateUI(dataArray);
   });
+*/
+
+// const example = [
+//     {
+//       "createdAt": "2019-09-30T15:20:57.402Z",
+//       "updatedAt": "2019-09-30T16:19:32.862Z",
+//       "location": "In San Francisco",
+//       "title": "Awesome trip to SF",
+//       "id_": "first-post",
+//       "image": "https://parsefiles.back4app.com/fM55jOxF9byYj0mcZe8zp3x3TU994bz0YdHdx5mG/bc200b503c1446d0740d44dcb51530d4_sf-boat.jpg",
+//       "objectId": "EQ4AHA4h4V"
+//     }
+//   ];
+
+const DEBUG = false;
+
+const url = "https://parseapi.back4app.com/classes/Posts";
+var networkDataReceived = false;
+const Posts = Parse.Object.extend('Posts');
+const query = new Parse.Query(Posts);
+
+query.find()
+  .then(posts => {
+    return posts.map(post => ({...post.attributes, id: post.attributes.id_ }))
+  })
+  .then(transformedPosts => {
+    networkDataReceived = true;
+    updateUI(transformedPosts);
+  })
+
 
 if ("caches" in window) {
   caches
