@@ -74,13 +74,13 @@ function isInArray(string, array) {
 // d. The Else-if case here is a cache-only for those files in the STATIC_FILES list
 // e. The Else case is for dynamic caching.  Retrieves from cache if found and does a fetch-cache otherwise
 self.addEventListener("fetch", function(event) {
-  var url = "https://pwagram-9071a.firebaseio.com/posts";
+  var url = "https://parseapi.back4app.com/classes/Posts";
   if (event.request.url.indexOf(url) > -1) {
     event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
         return fetch(event.request).then(function(res) {
           //trimCache(CACHE_DYNAMIC_NAME, 2);
-          cache.put(event.request, res.clone());
+          if(event.request.method === 'GET') cache.put(event.request, res.clone());
           return res;
         });
       })
