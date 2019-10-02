@@ -18,5 +18,8 @@
   "license": "ISC",
   "devDependencies": {
     "http-server": "^0.11.1"
+  },
+  "dependencies": {
+    "parse": "^2.7.1"
   }
 }
