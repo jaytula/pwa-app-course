@@ -84,26 +84,6 @@ function updateUI(data) {
   }
 }
 
-/*
-var url = "https://pwagram-9071a.firebaseio.com/posts.json";
-var networkDataReceived = false;
-const DEBUG = false;
-
-fetch(url)
-  .then(function(res) {
-    return res.json();
-  })
-  .then(function(data) {
-    networkDataReceived = true;
-    if (DEBUG) console.log("from web", data);
-    var dataArray = [];
-    for (var key in data) {
-      dataArray.push(data[key]);
-    }
-    updateUI(dataArray);
-  });
-*/
-
 // const example = [
 //     {
 //       "createdAt": "2019-09-30T15:20:57.402Z",
