@@ -1,4 +1,5 @@
 importScripts("/src/js/idb.js");
+importScripts("/src/js/utility.js");
 
 var CACHE_STATIC_NAME = "static-v13";
 var CACHE_DYNAMIC_NAME = "dynamic-v2";
@@ -21,12 +22,6 @@ var STATIC_FILES = [
   "https://npmcdn.com/parse/dist/parse.min.js",
   "/parse-setup.js"
 ];
-
-var dbPromise = idb.open("posts-store", 1, function(db) {
-  if (!db.objectStoreNames.contains("posts")) {
-    db.createObjectStore("posts", { keyPath: "id" });
-  }
-});
 
 function trimCache(cacheName, maxItems) {
   caches.open(cacheName).then(cache => {
@@ -91,15 +86,9 @@ self.addEventListener("fetch", function(event) {
       clonedRes.json().then(data => {
         const { results } = data;
         for (let i = 0; i < results.length; i++) {
-          dbPromise.then(function(db) {
-            var tx = db.transaction("posts", "readwrite");
-            var store = tx.objectStore("posts");
-            var transformedData = { ...results[i], id: results[i]["id_"] };
-            console.log(results[i]);
-            console.log({ transformedData });
-            store.put(transformedData);
-            return tx.complete;
-          });
+          var transformedData = { ...results[i], id: results[i]["id_"] };
+          delete transformedData['id_'];
+          writeData("posts", transformedData);
         }
       });
       return res;
