@@ -1,3 +1,5 @@
+importScripts("/src/js/idb.js");
+
 var CACHE_STATIC_NAME = "static-v13";
 var CACHE_DYNAMIC_NAME = "dynamic-v2";
 var STATIC_FILES = [
@@ -6,6 +8,7 @@ var STATIC_FILES = [
   "/offline.html",
   "/src/js/app.js",
   "/src/js/feed.js",
+  "/src/js/idb.js",
   "/src/js/promise.js",
   "/src/js/fetch.js",
   "/src/js/material.min.js",
@@ -18,6 +21,12 @@ var STATIC_FILES = [
   "https://npmcdn.com/parse/dist/parse.min.js",
   "/parse-setup.js"
 ];
+
+var dbPromise = idb.open("posts-store", 1, function(db) {
+  if (!db.objectStoreNames.contains("posts")) {
+    db.createObjectStore("posts", { keyPath: "id" });
+  }
+});
 
 function trimCache(cacheName, maxItems) {
   caches.open(cacheName).then(cache => {
@@ -76,15 +85,25 @@ function isInArray(string, array) {
 self.addEventListener("fetch", function(event) {
   var url = "https://parseapi.back4app.com/classes/Posts";
   if (event.request.url.indexOf(url) > -1) {
-    event.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
-        return fetch(event.request).then(function(res) {
-          //trimCache(CACHE_DYNAMIC_NAME, 2);
-          if(event.request.method === 'GET') cache.put(event.request, res.clone());
-          return res;
-        });
-      })
-    );
+    return fetch(event.request).then(function(res) {
+      var clonedRes = res.clone();
+
+      clonedRes.json().then(data => {
+        const { results } = data;
+        for (let i = 0; i < results.length; i++) {
+          dbPromise.then(function(db) {
+            var tx = db.transaction("posts", "readwrite");
+            var store = tx.objectStore("posts");
+            var transformedData = { ...results[i], id: results[i]["id_"] };
+            console.log(results[i]);
+            console.log({ transformedData });
+            store.put(transformedData);
+            return tx.complete;
+          });
+        }
+      });
+      return res;
+    });
   } else if (isInArray(event.request.url, STATIC_FILES)) {
     event.respondWith(caches.match(event.request));
   } else {
