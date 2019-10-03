@@ -1,4 +1,5 @@
 importScripts("/src/js/idb.js");
+importScripts("/src/js/utility.js");
 
 var CACHE_STATIC_NAME = "static-v16";
 var CACHE_DYNAMIC_NAME = "dynamic-v2";
@@ -29,12 +30,6 @@ function trimCache(cacheName, maxItems) {
     });
   });
 }
-
-var dbPromise = idb.open("posts-store", 1, function(db) {
-  if (!db.objectStoreNames.contains("posts")) {
-    db.createObjectStore("posts", { keyPath: "id" });
-  }
-});
 
 self.addEventListener("install", function(event) {
   console.log("[Service Worker] Installing Service Worker ...", event);
@@ -88,13 +83,7 @@ self.addEventListener("fetch", function(event) {
       clonedRes.json()
         .then(function(data) {
           for (var key in data) {
-            dbPromise
-              .then(function(db) {
-                var tx = db.transaction('posts', 'readwrite');
-                var store = tx.objectStore('posts');
-                store.put(data[key])
-                return tx.complete;
-              })
+             writeData('posts', data[key]);
           }
         })
       return res;
