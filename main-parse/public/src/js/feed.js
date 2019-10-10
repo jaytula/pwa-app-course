@@ -1,22 +1,22 @@
-var shareImageButton = document.querySelector("#share-image-button");
-var createPostArea = document.querySelector("#create-post");
+var shareImageButton = document.querySelector('#share-image-button');
+var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector(
-  "#close-create-post-modal-btn"
+  '#close-create-post-modal-btn'
 );
-var sharedMomentsArea = document.querySelector("#shared-moments");
+var sharedMomentsArea = document.querySelector('#shared-moments');
 
 function openCreatePostModal() {
-  createPostArea.style.display = "block";
+  createPostArea.style.display = 'block';
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
     deferredPrompt.userChoice.then(function(choiceResult) {
       console.log(choiceResult.outcome);
 
-      if (choiceResult.outcome === "dismissed") {
-        console.log("User cancelled installation");
+      if (choiceResult.outcome === 'dismissed') {
+        console.log('User cancelled installation');
       } else {
-        console.log("User added to home screen");
+        console.log('User added to home screen');
       }
     });
 
@@ -25,20 +25,20 @@ function openCreatePostModal() {
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.display = "none";
+  createPostArea.style.display = 'none';
 }
 
-shareImageButton.addEventListener("click", openCreatePostModal);
+shareImageButton.addEventListener('click', openCreatePostModal);
 
-closeCreatePostModalButton.addEventListener("click", closeCreatePostModal);
+closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
 
 // Currently not in use
 function onSaveButtonClicked() {
-  console.log("clicked");
-  if ("caches" in window) {
-    caches.open("user-requested").then(function(cache) {
-      cache.add("https://httpbin.org/get");
-      cache.add("/src/images/sf-boat.jpg");
+  console.log('clicked');
+  if ('caches' in window) {
+    caches.open('user-requested').then(function(cache) {
+      cache.add('https://httpbin.org/get');
+      cache.add('/src/images/sf-boat.jpg');
     });
   }
 }
@@ -50,23 +50,23 @@ function clearCards() {
 }
 
 function createCard(data) {
-  var cardWrapper = document.createElement("div");
-  cardWrapper.className = "shared-moment-card mdl-card mdl-shadow--2dp";
-  var cardTitle = document.createElement("div");
-  cardTitle.className = "mdl-card__title";
+  var cardWrapper = document.createElement('div');
+  cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
+  var cardTitle = document.createElement('div');
+  cardTitle.className = 'mdl-card__title';
   cardTitle.style.backgroundImage = `url("${data.image}")`;
-  cardTitle.style.backgroundSize = "cover";
-  cardTitle.style.height = "180px";
+  cardTitle.style.backgroundSize = 'cover';
+  cardTitle.style.height = '180px';
   cardWrapper.appendChild(cardTitle);
-  var cardTitleTextElement = document.createElement("h2");
-  cardTitleTextElement.style.color = "yellow";
-  cardTitleTextElement.className = "mdl-card__title-text";
+  var cardTitleTextElement = document.createElement('h2');
+  cardTitleTextElement.style.color = 'yellow';
+  cardTitleTextElement.className = 'mdl-card__title-text';
   cardTitleTextElement.textContent = data.title;
   cardTitle.appendChild(cardTitleTextElement);
-  var cardSupportingText = document.createElement("div");
-  cardSupportingText.className = "mdl-card__supporting-text";
+  var cardSupportingText = document.createElement('div');
+  cardSupportingText.className = 'mdl-card__supporting-text';
   cardSupportingText.textContent = data.location;
-  cardSupportingText.style.textAlign = "center";
+  cardSupportingText.style.textAlign = 'center';
   // var cardSaveButton = document.createElement("button");
   // cardSaveButton.addEventListener("click", onSaveButtonClicked);
   // cardSaveButton.textContent = "Save";
@@ -98,37 +98,26 @@ function updateUI(data) {
 
 const DEBUG = false;
 
-const url = "https://parseapi.back4app.com/classes/Posts";
+const url = 'https://parseapi.back4app.com/classes/Posts';
 var networkDataReceived = false;
 const Posts = Parse.Object.extend('Posts');
 const query = new Parse.Query(Posts);
 
-query.find()
+query
+  .find()
   .then(posts => {
-    return posts.map(post => ({...post.attributes, id: post.attributes.id_ }))
+    return posts.map(post => ({ ...post.attributes, id: post.attributes.id_ }));
   })
   .then(transformedPosts => {
     networkDataReceived = true;
     updateUI(transformedPosts);
-  })
+  });
 
-
-if ("caches" in window) {
-  caches
-    .match(url)
-    .then(function(response) {
-      if (response) {
-        return response.json();
-      }
-    })
-    .then(function(data) {
-      if (DEBUG) console.log("from cache", data);
-      if (!networkDataReceived) {
-        var dataArray = [];
-        for (var key in data) {
-          dataArray.push(data[key]);
-        }
-        updateUI(dataArray);
-      }
-    });
+if ('indexedDB' in window) {
+  readAllData('posts').then(function(data) {
+    if (!networkDataReceived) {
+      console.log('From cache', data);
+      updateUI(data);
+    }
+  });
 }
