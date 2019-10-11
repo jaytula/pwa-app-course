@@ -1,10 +1,15 @@
 var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
-var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
+var closeCreatePostModalButton = document.querySelector(
+  '#close-create-post-modal-btn'
+);
 var sharedMomentsArea = document.querySelector('#shared-moments');
 
 function openCreatePostModal() {
-  createPostArea.style.display = 'block';
+  // createPostArea.style.display = 'block';
+  // setTimeout(function() {
+    createPostArea.style.transform = 'translateY(0)';
+  //}, 1);
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -32,7 +37,8 @@ function openCreatePostModal() {
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.display = 'none';
+  //createPostArea.style.display = 'none';
+  createPostArea.style.transform = 'translateY(100vh)';
 }
 
 shareImageButton.addEventListener('click', openCreatePostModal);
@@ -43,16 +49,15 @@ closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
 function onSaveButtonClicked(event) {
   console.log('clicked');
   if ('caches' in window) {
-    caches.open('user-requested')
-      .then(function(cache) {
-        cache.add('https://httpbin.org/get');
-        cache.add('/src/images/sf-boat.jpg');
-      });
+    caches.open('user-requested').then(function(cache) {
+      cache.add('https://httpbin.org/get');
+      cache.add('/src/images/sf-boat.jpg');
+    });
   }
 }
 
 function clearCards() {
-  while(sharedMomentsArea.hasChildNodes()) {
+  while (sharedMomentsArea.hasChildNodes()) {
     sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
   }
 }
@@ -108,11 +113,10 @@ fetch(url)
   });
 
 if ('indexedDB' in window) {
-  readAllData('posts')
-    .then(function(data) {
-      if(!networkDataReceived) {
-        console.log('From cache', data);
-        updateUI(data);
-      }
-    });
+  readAllData('posts').then(function(data) {
+    if (!networkDataReceived) {
+      console.log('From cache', data);
+      updateUI(data);
+    }
+  });
 }
