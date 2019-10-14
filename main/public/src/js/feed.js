@@ -3,12 +3,16 @@ var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector(
   '#close-create-post-modal-btn'
 );
+var form = document.querySelector('form');
+var titleInput = document.querySelector('#title');
+var locationInput = document.querySelector('#location');
+
 var sharedMomentsArea = document.querySelector('#shared-moments');
 
 function openCreatePostModal() {
   // createPostArea.style.display = 'block';
   // setTimeout(function() {
-    createPostArea.style.transform = 'translateY(0)';
+  createPostArea.style.transform = 'translateY(0)';
   //}, 1);
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -120,3 +124,17 @@ if ('indexedDB' in window) {
     }
   });
 }
+
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  if (
+    titleInputvalue.value.trim() === '' ||
+    locationInput.value.trim() === ''
+  ) {
+    alert('Please enter valid data');
+    return;
+  }
+
+  closeCreatePostModal();
+});
